@@ -1,0 +1,139 @@
+<html lang="cn">
+<head>
+	<title>PDF电子发票批量合并打印 - 发票票</title>
+	<meta name="keywords" content="电子发票,PDF电子发票，合并打印,电子发票合并打印,电子发票批量打印,发票票" />
+	<meta name="description"
+		  content="发票票，致力于PDF电子发票批量打印和电子发票合并打印，让电子发票更绿色，合并打印更省纸张，批量打印更省时间，为地球节约资源" />
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link href="fapiao/all.css" rel="stylesheet">
+	<link href="fapiao/merge.css" rel="stylesheet">
+	<style>
+		.hl {color:#29BB9C;}
+	</style>
+	<style media="print" type="text/css">
+		.noprint {display: none}
+
+		.adsbygoogle, iframe, [id*="google_ads"] {
+			display: none !important;
+		}
+		* {
+			animation: none !important;
+			transition: none !important;
+		}
+	</style>
+	<style id="orient" media="print">@page { size: A4 portrait; margin:0;}</style>
+	<script src="fapiao/lib/jquery.min.js"></script>
+	<script src="fapiao/lib/pdf.min.js"></script>
+	<script src="fapiao/lib/dropzone.min.js"></script>
+	<script src="fapiao/lib/bootstrap.min.js"></script>
+	<script src="fapiao/lib/pace.min.js"></script>
+	<script src="fapiao/app.js"></script>
+</head>
+<body>
+<div id="sys-alert" class="alert alert-success text-center" style="height:0%;padding-top:30vh;line-height:400%;font-size:1.5vw;display:none">
+	感谢您使用发票票，您的浏览器可能是IE内核，新版已不再支持，我们建议您换用如下的浏览器
+	<br/>
+	<a href="https://www.google.cn/chrome/" target="blank" rel="nofollow"><img src="fapiao/images/browser/chrome.svg" width="48px"/></a>
+	&nbsp;
+	<a href="https://www.firefox.com.cn/" target="blank" rel="nofollow"><img src="fapiao/images/browser/firefox.png" width="48px"/></a>
+	&nbsp;
+	<a href="https://www.microsoft.com/zh-cn/edge" target="blank" rel="nofollow"><img src="fapiao/images/browser/edge.svg" width="48px"/></a>
+	&nbsp;
+	<a href="https://www.apple.com.cn/safari/" target="blank" rel="nofollow"><img src="fapiao/images/browser/safari.png" width="48px"/></a>
+</div>
+
+<div class="app">
+	<div class="merge-toolbar">
+		<img class="brand-logo" src="fapiao/images/fp.png" alt="发票票"/>
+		<div class="merge-title">电子发票PDF合并打印<span class="brand">发票票</span></div>
+		<div class="toolbar-spacer"></div>
+		<div class="seg" id="perPageSeg">
+			<button type="button" data-n="2" class="active">每页 2 张</button>
+			<button type="button" data-n="3">每页 3 张</button>
+			<button type="button" data-n="4">每页 4 张</button>
+		</div>
+		<button type="button" class="btn btn-mint" id="printBtn" style="font-size:15px">打印</button>
+		<button type="button" class="btn btn-default" id="clearBtn" style="font-size:15px">清空</button>
+	</div>
+
+	<div class="merge-body">
+		<div class="merge-preview" id="previewPane">
+			<div id="previewEmpty" class="preview-empty">
+				<div class="pe-hero">
+					<img class="pe-logo" src="fapiao/images/fp.png" alt="发票票"/>
+					<h2 id="peTitle">把发票 PDF 拖到右下角上传窗口</h2>
+					<p id="peSub">自动合并、批量打印，最多节省 75% 纸张</p>
+				</div>
+				<div class="pe-feats">
+					<div class="pe-feat">
+						<img src="fapiao/images/bulb.svg"/>
+						<h4>节省纸张</h4>
+						<p>多张发票打印在同一张纸上</p>
+						<p>最多节省<span class="hl">75%</span>的纸张</p>
+					</div>
+					<div class="pe-feat">
+						<img src="fapiao/images/thumb.svg"/>
+						<h4>提高效率</h4>
+						<p>拖拽PDF发票，一次打印</p>
+						<p>提高<span class="hl">10</span>倍效率</p>
+					</div>
+					<div class="pe-feat">
+						<img src="fapiao/images/trophy.svg"/>
+						<h4>保护环境</h4>
+						<p>合并3000次，就少砍一颗大树</p>
+						<p>为人类多造<span class="hl">4公斤</span>氧气</p>
+					</div>
+				</div>
+			</div>
+			<div id="sheets"></div>
+		</div>
+
+		<aside class="merge-side">
+			<div class="merge-side-head">
+				<h3>发票列表<span class="count" id="invCount">0 / 0</span><span class="parsing" id="parseHint"></span></h3>
+				<div class="merge-side-tools">
+					<button type="button" class="btn btn-default" id="selectAllBtn">全选</button>
+					<button type="button" class="btn btn-default" id="removeCheckedBtn">删除选中</button>
+				</div>
+				<p class="side-hint">勾选 = 参与合并；拖动列表任意位置可调整顺序</p>
+			</div>
+			<div class="merge-side-body" id="listScroll">
+				<ul class="invoice-list" id="invoiceList"></ul>
+			</div>
+			<div class="merge-upload" id="uploadBox">
+				<div class="up-head">
+					<b>上传发票</b>
+					<div class="up-actions"><button type="button" class="up-toggle" id="uploadToggle">收起 ▾</button></div>
+				</div>
+				<div class="up-body" id="uploadBody">
+					<form id="pdfdz" action="#" class="dropzone">
+						<div class="dz-default dz-message">
+							<div class="up-ico">＋</div>
+							<div>把发票 PDF 拖到这里，或点击选择文件</div>
+							<div class="up-sub">支持 PDF / PNG / JPG，最多 36 个 · 可随时继续上传</div>
+						</div>
+						<div class="fallback">
+							<input name="file" type="file" multiple>
+							<input type="hidden" id="data"/>
+						</div>
+					</form>
+				</div>
+			</div>
+		</aside>
+	</div>
+
+	<div class="site-footer noprint">
+		一梦不醒 © <span id="footerYear"></span> | <a href="#" onclick="alert('??');" target="_blank">苏ICP备77895467号-43</a>
+	</div>
+</div>
+
+<div id="dropOverlay" class="drop-overlay">
+	<div class="do-box">
+		<div class="do-ico">＋</div>
+		<div>松开鼠标，添加发票 PDF</div>
+	</div>
+</div>
+</body>
+</html>
