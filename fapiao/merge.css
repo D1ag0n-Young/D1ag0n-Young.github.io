@@ -173,7 +173,7 @@ html, body { height: 100%; }
 	flex: 0 0 auto;
 	width: 42px;
 	height: 54px;
-	object-fit: cover;
+	object-fit: contain;
 	border: 1px solid #eef1f4;
 	border-radius: 4px;
 	background: #fff;

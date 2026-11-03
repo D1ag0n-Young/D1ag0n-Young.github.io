@@ -97,7 +97,7 @@ function readPdf(file) {
 	var reader = new FileReader();
 	reader.readAsArrayBuffer(file);
 	reader.onload = function (e) {
-		var task = pdfjsLib.getDocument({ 'data': new Uint8Array(e.target.result), 'cMapUrl': 'sy/cmaps/', 'cMapPacked': true });
+		var task = pdfjsLib.getDocument({ 'data': new Uint8Array(e.target.result), 'cMapUrl': 'fapiao/cmaps/', 'cMapPacked': true });
 		task.promise.then(function (pdf) {
 			pdf.getPage(1).then(function (page) {
 				var viewport = page.getViewport({ 'scale': 3 });
@@ -107,7 +107,12 @@ function readPdf(file) {
 				var ctx = canvas.getContext('2d');
 				ctx.fillStyle = '#ffffff';
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
-				page.render({ 'canvasContext': ctx, 'viewport': viewport }).promise.then(function () {
+				page.render({
+					'canvasContext': ctx,
+					'viewport': viewport,
+					'intent': 'print',
+					'renderInteractiveForms': true
+				}).promise.then(function () {
 					addInvoice(canvas, file);
 				}, function () { endRender(); });
 			}, function () { endRender(); });
@@ -137,6 +142,10 @@ function readImage(file) {
 		endRender();
 	};
 	img.src = url;
+}
+
+function isImageFile(file) {
+	return /^image\/(?:png|jpeg)$/i.test(file.type || '') || /\.(?:png|jpe?g)$/i.test(file.name || '');
 }
 
 /* ---------------- 列表与预览 ---------------- */
@@ -503,8 +512,9 @@ Dropzone.options.pdfdz = {
 	url: 'upload.jsp',
 	method: 'post',
 	paramName: 'file',
+	autoProcessQueue: false,
 	maxFiles: 36,
-	maxFilesize: 1,
+	maxFilesize: 10,
 	acceptedFiles: '.pdf, .png, .jpg, .jpeg',
 	parallelUploads: 1,
 	previewsContainer: false,
@@ -512,20 +522,11 @@ Dropzone.options.pdfdz = {
 	dictResponseError: '文件上传失败!',
 	dictInvalidFileType: '上传的文件类型仅支持PDF',
 	dictFallbackMessage: '浏览器不受支持',
-	dictFileTooBig: '文件过大上传文件最大支持1M.',
-	addedfiles: function () {
-		noteBatch();
-	},
+	dictFileTooBig: '文件过大，单个文件最大支持 10MB。',
 	addedfile: function (file) {
 		noteBatch();
 		file.__defaultSelected = batchDecision;
-	},
-	error: function (file) {
-		if (file.type === 'image/png' || file.type === 'image/jpeg') readImage(file);
-		else readPdf(file);
-	},
-	success: function (file) {
-		if (file.type === 'image/png' || file.type === 'image/jpeg') readImage(file);
+		if (isImageFile(file)) readImage(file);
 		else readPdf(file);
 	}
 };
